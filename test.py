@@ -1,4 +1,4 @@
-board = ["1110111", "1111000", "1100000", "1100000", "0000000", "0000000"]
+board = ["1110111", "1111000", "1100000", "1100000", "1000000", "1000000"]
 
 
 def getscore(board):
@@ -58,7 +58,7 @@ def checkrow(board, value):
             connection += 1
         else:
             connection = 0
-        if connection == 4:
+        if connection >= 4:
             score += 1
     return score
 
@@ -70,11 +70,11 @@ def checkcolumn(board, value):
         for j in range(0, 6):
             if board[j][i] == value:
                 connection += 1
-                if connection == 4:
+                if connection >= 4:
                     score += 1
-                    continue
             else:
                 connection = 0
+        connection = 0
     return score
 
 # def checkdiagonal(index, row):
