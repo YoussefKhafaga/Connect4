@@ -1,11 +1,11 @@
-board = ["0000002", "0000020", "0010200", "0002000", "0020100", "0200100"]
+import time
 
+board = ["0001111", "0000000", "0000000", "0000000", "0000000", "0000000"]
+nextmoves = set()
 
 def getscore(board):
     maxscore = getmaxscore(board)
-    print(maxscore)
     minscore = getminscore(board)
-    print(minscore)
     return maxscore, minscore
 
 
@@ -27,18 +27,75 @@ def getminscore(board):
     return score
 
 
-# def play(turn, board):
-#     if turn == 1:
+def play(turn, board):
+    if turn == 1:
         # max plays
-        # generatepossbilemoves(board)
+        generatepossbilemoves(board)
 
 
-def generatepossbilemoves(current):
+def generatepossbilemoves(currentboardstate):
     possiblemoves = []
+    # nextmoves = set()
+    for i in range(0, 5):
+        if currentboardstate[i] in nextmoves:
+            return
     for i in range(0, 6):
-        indices = getpos(current[i])
-        for j in indices:
-            print("row", i, "column", j)
+        for j in range(0, 7):
+            temp = currentboardstate.copy()
+            if currentboardstate[i][j] == "1":
+                # check column move
+                if i < 5:
+                    if currentboardstate[i+1][j] == "0":
+                        temp2 = list(currentboardstate[i+1])
+                        temp2[j] = "1"
+                        string = ''.join(temp2)
+                        temp[i+1] = string
+                        # nextmoves.add(temp)
+                        if temp not in possiblemoves:
+                            possiblemoves.append(temp)
+                        temp = currentboardstate.copy()
+                # check row move
+                if j != 6:
+                    if currentboardstate[i][j+1] == "0":
+                        temp2 = list(currentboardstate[i])
+                        temp2[j+1] = "1"
+                        string = ''.join(temp2)
+                        temp[i] = string
+                        if temp not in possiblemoves:
+                            possiblemoves.append(temp)
+                        temp = currentboardstate.copy()
+                # check row reversed
+                if j != 6 and j != 0:
+                    if currentboardstate[i][j-1] == "0":
+                        temp2 = list(currentboardstate[i])
+                        temp2[j-1] = "1"
+                        string = ''.join(temp2)
+                        temp[i] = string
+                        if temp not in possiblemoves:
+                            possiblemoves.append(temp)
+                        temp = currentboardstate.copy()
+                # # check diagonal move
+                # if i != 5 and j != 6:
+                #     if currentboardstate[i+1][j+1] == "0" and currentboardstate[i][j+1] != "0":
+                #         temp2 = list(currentboardstate[i+1])
+                #         temp2[j + 1] = "1"
+                #         string = ''.join(temp2)
+                #         temp[i+1] = string
+                #         if temp not in possiblemoves:
+                #             possiblemoves.append(temp)
+                #         temp = currentboardstate.copy()
+                # # check reverse diagonal
+                # if i != 5 and j != 6 and j != 0:
+                #     if currentboardstate[i+1][j-1] == "0" and currentboardstate[i][j-1] != "0":
+                #         temp2 = list(currentboardstate[i + 1])
+                #         temp2[j - 1] = "1"
+                #         string = ''.join(temp2)
+                #         print(string)
+                #         temp[i + 1] = string
+                #         if temp not in possiblemoves:
+                #             possiblemoves.append(temp)
+                #         temp = currentboardstate.copy()
+    return possiblemoves
 
 
 
@@ -117,3 +174,5 @@ def getreversediagonalscore(row, column, board, value):
 
 # play(1, board)
 getscore(board)
+# generatepossbilemoves(board)
+print(generatepossbilemoves(board))
