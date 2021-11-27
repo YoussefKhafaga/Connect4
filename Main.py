@@ -66,7 +66,7 @@ def next_valid_row(board, column):
             return r
 
 
-def drop_piece(board, row, col, piece, spiece):
+def drop_piece(board1, board, row, col, piece, spiece):
     board[row][col] = piece
 
     temp2 = list(board1[row])
@@ -132,27 +132,17 @@ def getminscore(board):
 
 def generatepossbilemoves(currentboardstate, plays):
     possiblemoves = []
-    if plays == 0:
-        for i in range(0, 1):
-            for j in range(0, 7):
-                temp = currentboardstate.copy()
-                if currentboardstate[i][j] == "0":
-                    temp2 = list(currentboardstate[i])
-                    temp2[j] = "2"
-                    string = ''.join(temp2)
-                    temp[i] = string
-                else:
-                    temp2 = list(currentboardstate[i])
-                    temp2[j] = "2"
-                    string = ''.join(temp2)
-                    temp[i+1] = string
-                if temp not in possiblemoves:
-                    possiblemoves.append(temp)
-                temp = currentboardstate.copy()
-        plays += 1
     for i in range(0, 6):
         for j in range(0, 7):
             temp = currentboardstate.copy()
+            if currentboardstate[i][j] == "0" and (currentboardstate[i-1][j] == "2" or i == 0):
+                temp2 = list(currentboardstate[i])
+                temp2[j] = "2"
+                string = ''.join(temp2)
+                temp[i] = string
+                if temp not in possiblemoves:
+                    possiblemoves.append(temp)
+                temp = currentboardstate.copy()
             if currentboardstate[i][j] == "2":
                 # check column move
                 if i < 5:
@@ -184,6 +174,7 @@ def generatepossbilemoves(currentboardstate, plays):
                         if temp not in possiblemoves:
                             possiblemoves.append(temp)
                         temp = currentboardstate.copy()
+    # print(possiblemoves)
     return possiblemoves
 
 def checkrow(board, value):
@@ -264,7 +255,6 @@ def maximize(board, k):
     k -= 1
     (max_child, max_utility) = (None, -math.inf)
     for move in generatepossbilemoves(board, plays):
-        print("move", move)
         (temp, utility) = minimize(move, k)
         minimax_tree.append((utility, k))
         if utility > max_utility:
@@ -290,6 +280,7 @@ def minimize(board, k):
 
 def decision(board, k):
     child, utility = maximize(board, k)
+    # print(child)
     return child
 
 
@@ -608,11 +599,10 @@ def main_menu():
                 run = False
         k = input_k_box.text
         pygame.display.update()
-    print("k value", k)
 
 
 def game(k, with_pruning):
-    print(k, with_pruning)
+    # print(k, with_pruning)
     game_over = False
     turn = 1
     board = create_board()
@@ -637,8 +627,8 @@ def game(k, with_pruning):
 
                     if is_valid_location(board, col):
                         row = next_valid_row(board, col)
-                        drop_piece(board, row, col, 1, "1")
-                        # print(board1)
+                        drop_piece(board1, board, row, col, 1, "1")
+                        print(board1)
                         draw_board(board)
                         print_board(board)
                         print("\n")
@@ -649,7 +639,7 @@ def game(k, with_pruning):
                 row = 0
                 col = 0
                 child = decision(board1, temp)
-                print("asdasfas", child)
+                # print(child)
                 for i in range(0, 6):
                     for j in range(0, 7):
                         if child[i][j] != board1[i][j]:
@@ -658,14 +648,13 @@ def game(k, with_pruning):
                             break
                     if row != col:
                         break
-                if is_valid_location(board, col):
-                    pygame.time.wait(100)
-                    drop_piece(board, row, col, 2, "2")
-                    print(board1)
-                    draw_board(board)
-                    print_board(board)
-                    print("\n")
-                    turn = 1
+                pygame.time.wait(100)
+                drop_piece(board1, board, row, col, 2, "2")
+                print(board1)
+                draw_board(board)
+                print_board(board)
+                print("\n")
+                turn = 1
 
             if game_end(board):
                 pygame.time.wait(4000)

@@ -1,165 +1,146 @@
-import time
+board = ["0000000", "0000000", "0000000", "0000000", "0000000", "0000000"]
 
-board = ["0000100", "0000000", "0000000", "0000000", "0000000", "0000000"]
-nextmoves = set()
-plays = 0
-
-def getscore(board):
-    maxscore = getmaxscore(board)
-    minscore = getminscore(board)
-    return maxscore, minscore
-
-
-def getmaxscore(board):
+def calculateconnections(board, value, notvalue, numberofconnections):
+    connection = 0
     score = 0
+    bonus = blocked = 0
+    # for Rows
+    flag = 1
     for i in range(0, 6):
-        score += checkrow(board[i], "1")
-    if score == 0:
-        return 0
-    score += checkcolumn(board, "1")
-    score += checkdiagonal(board, "1")
-    return score
-
-
-def getminscore(board):
-    score = 0
-    for i in range(0, 6):
-        score += checkrow(board[i], "2")
-    if score == 0:
-        return 0
-    score += checkcolumn(board, "2")
-    score += checkdiagonal(board, "2")
-    return score
-
-
-
-def generatepossbilemoves(currentboardstate, plays):
-    possiblemoves = []
-    if plays == 0:
-        for i in range(0, 1):
-            for j in range(0, 7):
-                temp = currentboardstate.copy()
-                if currentboardstate[i][j] == "0":
-                    temp2 = list(currentboardstate[i])
-                    temp2[j] = "2"
-                    string = ''.join(temp2)
-                    temp[i] = string
-                else:
-                    temp2 = list(currentboardstate[i])
-                    temp2[j] = "2"
-                    string = ''.join(temp2)
-                    temp[i+1] = string
-                if temp not in possiblemoves:
-                    possiblemoves.append(temp)
-                temp = currentboardstate.copy()
-        plays += 1
-    for i in range(0, 6):
+        tempbonus = 0
+        flag = 1
         for j in range(0, 7):
-            temp = currentboardstate.copy()
-            if currentboardstate[i][j] == "2":
-                # check column move
-                if i < 5:
-                    if currentboardstate[i+1][j] == "0":
-                        temp2 = list(currentboardstate[i+1])
-                        temp2[j] = "2"
-                        string = ''.join(temp2)
-                        temp[i+1] = string
-                        if temp not in possiblemoves:
-                            possiblemoves.append(temp)
-                        temp = currentboardstate.copy()
-                # check row move
-                if j != 6:
-                    if currentboardstate[i][j+1] == "0":
-                        temp2 = list(currentboardstate[i])
-                        temp2[j+1] = "2"
-                        string = ''.join(temp2)
-                        temp[i] = string
-                        if temp not in possiblemoves:
-                            possiblemoves.append(temp)
-                        temp = currentboardstate.copy()
-                # check row reversed
-                if j != 6 and j != 0:
-                    if currentboardstate[i][j-1] == "0":
-                        temp2 = list(currentboardstate[i])
-                        temp2[j-1] = "2"
-                        string = ''.join(temp2)
-                        temp[i] = string
-                        if temp not in possiblemoves:
-                            possiblemoves.append(temp)
-                        temp = currentboardstate.copy()
-    return possiblemoves
-
-
-def checkrow(board, value):
-    score = 0
-    connection = 0
-    zeros = 0
-    for i in board:
-        if i == value:
-            connection += 1
-            if connection >= 4:
-                score += 1
-        else:
-            zeros += 1
-            if zeros == 7:
-                return score
-            connection = 0
-    return score
-
-
-def checkcolumn(board, value):
-    connection = 0
-    score = 0
-    for i in range(0, 7):
-        for j in range(0, 6):
-            if board[j][i] == value:
+            # print(connection)
+            if board[i][j] == value:
                 connection += 1
-                if connection >= 4:
+                if j == 3:
+                    tempbonus += 0.4
+                    if i == 2:
+                        tempbonus += 0.4
+                elif j == 2 or 1 or 4 or 5:
+                    tempbonus += 0.2
+                if connection == numberofconnections:
                     score += 1
+                    connection = 0
+            elif board[i][j] == notvalue:
+                if connection < 4:
+                    if connection >= 1:
+                        blocked += 1
+                    flag = 0
+                connection = 0
             else:
                 connection = 0
+
+        if flag:
+            bonus += tempbonus
+
+    connection = 0
+    # for columns
+    for i in range(0, 7):
+        tempbonus = 0
+        flag = 1
+        for j in range(0, 6):
+            # print(connection)
+            if board[j][i] == value:
+                connection += 1
+                if i == 3:
+                    tempbonus += 0.3
+                    if j == 2:
+                        tempbonus += 0.3
+                elif i == 2 or 1 or 4 or 5:
+                    tempbonus += 0.2
+                if connection == numberofconnections:
+                    score += 1
+                    connection = 0
+            elif board[j][i] == notvalue:
+                if connection < 4:
+                    if connection >= 1:
+                        blocked += 1
+                    flag = 0
+                connection = 0
+            else:
+                connection = 0
+
+        if flag:
+            bonus += tempbonus
         connection = 0
-    return score
 
-
-def checkdiagonal(board, value):
-    score = 0
+    # for digaonal
     for i in range(0, 6):
+        tempbonus = 0
+        flag = 1
         for j in range(0, 7):
-            score += getdiagonalscore(i, j, board, value)
-            score += getreversediagonalscore(i, j, board, value)
-    return score
+            row = i
+            column = j
+            while row < 6 and column < 7:
+                if board[row][column] == value:
+                    connection += 1
+                    if row == 2:
+                        tempbonus += 0.4
+                        if column == 3:
+                            tempbonus += 0.4
+                    elif i == 2 or 1 or 4 or 5:
+                        tempbonus += 0.2
+                    if connection == numberofconnections:
+                        score += 1
+                        connection = 0
+                elif board[row][column] == notvalue:
+                    if connection < 4:
+                        if connection >= 1:
+                            blocked += 1
+                        flag = 0
+                    connection = 0
+                else:
+                    connection = 0
+                row += 1
+                column += 1
+        if flag:
+            bonus += tempbonus
+        connection = 0
 
-def getdiagonalscore(row, column, board, value):
+    # for reversed digaonal
+    for i in range(0, 6):
+        tempbonus = 0
+        flag = 1
+        for j in range(0, 7):
+            row = i
+            column = j
+            while row < 6 and column < 7 and column > 0:
+                if board[row][column] == value:
+                    connection += 1
+                    if row == 2:
+                        tempbonus += 0.4
+                        if column == 3:
+                            tempbonus += 0.4
+                    elif i == 2 or 1 or 4 or 5:
+                        tempbonus += 0.2
+                    if connection == numberofconnections:
+                        score += 1
+                        connection = 0
+                elif board[row][column] == notvalue:
+                    if connection < 4:
+                        if connection >= 1:
+                            blocked += 1
+                        flag = 0
+                    connection = 0
+                else:
+                    connection = 0
+                row += 1
+                column -= 1
+        if flag:
+            bonus += tempbonus
+        connection = 0
+
+    return score, bonus, blocked
+
+
+def evaluation(board, value, notvalue):
     score = 0
-    connection = 0
-    while row < 6 and column < 7:
-        if board[row][column] == value:
-            connection += 1
-            if connection == 4:
-                score += 1
-        else:
-            connection = 0
-        row += 1
-        column += 1
+    x, y, z = calculateconnections(board, value, notvalue, 2)
+    score += x * 10 + y * 10 - z * 10
+    x, y, z = calculateconnections(board, value, notvalue, 3)
+    score += x * 100 + y * 100 - z * 100
+    x, y, z = calculateconnections(board, value, notvalue, 4)
+    score += x * 1000 + y * 100 - z * 1000
+
     return score
-
-
-def getreversediagonalscore(row, column, board, value):
-    score = 0
-    connection = 0
-    while row < 6 and column < 7 and column >= 0:
-        if board[row][column] == value:
-            connection += 1
-            if connection == 4:
-                score += 1
-        else:
-            connection = 0
-        row += 1
-        column -= 1
-    return score
-
-# play(1, board)
-# print(getscore(board))
-# generatepossbilemoves(board)
-print(generatepossbilemoves(board, plays))
