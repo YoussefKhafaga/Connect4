@@ -135,7 +135,7 @@ def generatepossbilemoves(currentboardstate, plays):
     for i in range(0, 6):
         for j in range(0, 7):
             temp = currentboardstate.copy()
-            if currentboardstate[i][j] == "0" and (currentboardstate[i-1][j] == "2" or i == 0):
+            if currentboardstate[i][j] == "0" and (i == 0):
                 temp2 = list(currentboardstate[i])
                 temp2[j] = "2"
                 string = ''.join(temp2)
@@ -156,7 +156,7 @@ def generatepossbilemoves(currentboardstate, plays):
                         temp = currentboardstate.copy()
                 # check row move
                 if j != 6:
-                    if currentboardstate[i][j+1] == "0":
+                    if currentboardstate[i][j+1] == "0" and currentboardstate[i-1][j+1] != "0":
                         temp2 = list(currentboardstate[i])
                         temp2[j+1] = "2"
                         string = ''.join(temp2)
@@ -166,7 +166,7 @@ def generatepossbilemoves(currentboardstate, plays):
                         temp = currentboardstate.copy()
                 # check row reversed
                 if j != 6 and j != 0:
-                    if currentboardstate[i][j-1] == "0":
+                    if currentboardstate[i][j-1] == "0" and currentboardstate[i-1][j-1] != "0":
                         temp2 = list(currentboardstate[i])
                         temp2[j-1] = "2"
                         string = ''.join(temp2)
