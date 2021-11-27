@@ -143,7 +143,7 @@ def generatepossbilemoves(currentboardstate, plays):
                 if temp not in possiblemoves:
                     possiblemoves.append(temp)
                 temp = currentboardstate.copy()
-            if currentboardstate[i][j] == "2":
+            if currentboardstate[i][j] == "2" or currentboardstate[i][j] == "1":
                 # check column move
                 if i < 5:
                     if currentboardstate[i+1][j] == "0":
@@ -248,8 +248,8 @@ def getreversediagonalscore(row, column, board, value):
 
 def maximize(board, k):
     k = int(k)
-    if game_end1(board):
-        return None, evaluation(board, "2", "1")
+    # if game_end1(board):
+    #     return None, evaluation(board, "2", "1")
     if k == 0:
         return None, evaluation(board, "2", "1")
     k -= 1
@@ -628,7 +628,7 @@ def game(k, with_pruning):
                     if is_valid_location(board, col):
                         row = next_valid_row(board, col)
                         drop_piece(board1, board, row, col, 1, "1")
-                        print(board1)
+                        # print(board1)
                         draw_board(board)
                         print_board(board)
                         print("\n")
@@ -639,7 +639,7 @@ def game(k, with_pruning):
                 row = 0
                 col = 0
                 child = decision(board1, temp)
-                # print(child)
+                print(child)
                 for i in range(0, 6):
                     for j in range(0, 7):
                         if child[i][j] != board1[i][j]:
@@ -650,7 +650,7 @@ def game(k, with_pruning):
                         break
                 pygame.time.wait(100)
                 drop_piece(board1, board, row, col, 2, "2")
-                print(board1)
+                # print(board1)
                 draw_board(board)
                 print_board(board)
                 print("\n")
