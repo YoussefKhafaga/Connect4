@@ -5,6 +5,7 @@ import random
 import math
 
 import sys
+
 pygame.init()
 
 board1 = ["0000000", "0000000", "0000000", "0000000", "0000000", "0000000"]
@@ -44,6 +45,7 @@ def game_end(board):
                 return False
     return True
 
+
 def game_end1(board):
     for i in range(columns):
         for j in range(rows):
@@ -75,7 +77,6 @@ def drop_piece(board1, board, row, col, piece, spiece):
     board1[row] = string
 
 
-
 def draw_board(board):
     for i in range(columns):
         for j in range(rows):
@@ -96,9 +97,6 @@ def print_board(board):
         print(int(board[j][0]), '', int(board[j][1]), '', int(board[j][2]), '', int(board[j][3]),
               '',
               int(board[j][4]), '', int(board[j][5]), '', int(board[j][6]))
-
-
-
 
 
 def getscore(board):
@@ -129,7 +127,6 @@ def getminscore(board):
     return score
 
 
-
 def generatepossbilemoves(currentboardstate, plays):
     possiblemoves = []
     for i in range(0, 6):
@@ -146,19 +143,19 @@ def generatepossbilemoves(currentboardstate, plays):
             if currentboardstate[i][j] == "2" or currentboardstate[i][j] == "1":
                 # check column move
                 if i < 5:
-                    if currentboardstate[i+1][j] == "0":
-                        temp2 = list(currentboardstate[i+1])
+                    if currentboardstate[i + 1][j] == "0":
+                        temp2 = list(currentboardstate[i + 1])
                         temp2[j] = "2"
                         string = ''.join(temp2)
-                        temp[i+1] = string
+                        temp[i + 1] = string
                         if temp not in possiblemoves:
                             possiblemoves.append(temp)
                         temp = currentboardstate.copy()
                 # check row move
                 if j != 6:
-                    if currentboardstate[i][j+1] == "0" and currentboardstate[i-1][j+1] != "0":
+                    if currentboardstate[i][j + 1] == "0" and currentboardstate[i - 1][j + 1] != "0":
                         temp2 = list(currentboardstate[i])
-                        temp2[j+1] = "2"
+                        temp2[j + 1] = "2"
                         string = ''.join(temp2)
                         temp[i] = string
                         if temp not in possiblemoves:
@@ -166,9 +163,9 @@ def generatepossbilemoves(currentboardstate, plays):
                         temp = currentboardstate.copy()
                 # check row reversed
                 if j != 6 and j != 0:
-                    if currentboardstate[i][j-1] == "0" and currentboardstate[i-1][j-1] != "0":
+                    if currentboardstate[i][j - 1] == "0" and currentboardstate[i - 1][j - 1] != "0":
                         temp2 = list(currentboardstate[i])
-                        temp2[j-1] = "2"
+                        temp2[j - 1] = "2"
                         string = ''.join(temp2)
                         temp[i] = string
                         if temp not in possiblemoves:
@@ -176,6 +173,7 @@ def generatepossbilemoves(currentboardstate, plays):
                         temp = currentboardstate.copy()
     # print(possiblemoves)
     return possiblemoves
+
 
 def checkrow(board, value):
     score = 0
@@ -217,6 +215,7 @@ def checkdiagonal(board, value):
             score += getreversediagonalscore(i, j, board, value)
     return score
 
+
 def getdiagonalscore(row, column, board, value):
     score = 0
     connection = 0
@@ -245,6 +244,7 @@ def getreversediagonalscore(row, column, board, value):
         row += 1
         column -= 1
     return score
+
 
 def maximize(board, k):
     k = int(k)
@@ -320,156 +320,195 @@ def minimize_pruning(board, alpha, beta, k):
     return min_child, min_utility
 
 
-def decision_pruning(board):
-    child, utility = maximize_pruning(board, -math.inf, math.inf)
+def decision_pruning(board, k):
+    child, utility = maximize_pruning(board, -math.inf, math.inf, k)
     return child
 
 
-def calculateconnections(board, value, notvalue, numberofconnections):
-    connection = 0
+def calculateconnections(board1, value, notvalue, numberofconnections):
+    valueconnection = 0
+    notvalueconnection = 0
+    blocks = 0
     score = 0
-    bonus = blocked = 0
+
     # for Rows
-    flag = 1
     for i in range(0, 6):
-        tempbonus = 0
-        flag = 1
         for j in range(0, 7):
-            # print(connection)
-            if board[i][j] == value:
-                connection += 1
-                if j == 3:
-                    tempbonus += 0.4
-                    if i == 2:
-                        tempbonus += 0.4
-                elif j == 2 or 1 or 4 or 5:
-                    tempbonus += 0.2
-                if connection == numberofconnections:
+
+            # limit the connections (There is no need to check for them)
+            if valueconnection == 0 and board1[i][j] == notvalue:
+                if j == 5 and numberofconnections == 2:
+                    break
+                if j == 4 and numberofconnections == 3:
+                    break
+                if j == 3 and numberofconnections == 4:
+                    break
+
+            # giving a score for blocks with scale if it blocks more connection
+            if board1[i][j] == value:
+                valueconnection += 1
+                # if we blocked 2 connections for player
+                if notvalueconnection == 1:
+                    blocks += 8
+                # if we blocked 3 connection for player
+                elif notvalueconnection == 2:
+                    blocks += 27
+                # if we blocked 4 connection for player
+                elif notvalueconnection == 3:
+                    blocks += 64
+                # if we blocked more than 4 connection for player
+                else:
+                    blocks += 100
+                notvalueconnection = 0
+
+                if valueconnection == numberofconnections:
                     score += 1
-                    connection = 0
-            elif board[i][j] == notvalue:
-                if connection < 4:
-                    if connection >= 1:
-                        blocked += 1
-                    flag = 0
-                connection = 0
+                    valueconnection -= 1
+
+            # if its a player chip increment player connections
+            elif board1[i][j] == notvalue:
+                notvalueconnection += 1
+            # if empty place reset connections
             else:
-                connection = 0
+                valueconnection = 0
+                notvalueconnection = 0
 
-        if flag:
-            bonus += tempbonus
+    valueconnection = 0
+    notvalueconnection = 0
 
-    connection = 0
     # for columns
     for i in range(0, 7):
-        tempbonus = 0
-        flag = 1
-        for j in range(0, 6):
-            # print(connection)
-            if board[j][i] == value:
-                connection += 1
-                if i == 3:
-                    tempbonus += 0.3
-                    if j == 2:
-                        tempbonus += 0.3
-                elif i == 2 or 1 or 4 or 5:
-                    tempbonus += 0.2
-                if connection == numberofconnections:
-                    score += 1
-                    connection = 0
-            elif board[j][i] == notvalue:
-                if connection < 4:
-                    if connection >= 1:
-                        blocked += 1
-                    flag = 0
-                connection = 0
-            else:
-                connection = 0
+        bonus = 0
 
-        if flag:
-            bonus += tempbonus
-        connection = 0
+        for j in range(0, 6):
+            if valueconnection == 0 and board1[j][i] == notvalue:
+                if j == 4 and numberofconnections == 2:
+                    break
+                if j == 3 and numberofconnections == 3:
+                    break
+                if j == 2 and numberofconnections == 4:
+                    break
+
+            if board1[j][i] == value:
+                valueconnection += 1
+                if i == 3:
+                    score += 1
+                    # if we blocked 2 connections for player
+                    if notvalueconnection == 1:
+                        blocks += 8
+                    # if we blocked 3 connection for player
+                    elif notvalueconnection == 2:
+                        blocks += 27
+                    # if we blocked 4 connection for player
+                    elif notvalueconnection == 3:
+                        blocks += 64
+                    # if we blocked more than 4 connection for player
+                    else:
+                        blocks += 100
+                notvalueconnection = 0
+
+                if valueconnection == numberofconnections:
+                    score += 1
+                    valueconnection -= 1
+
+            elif board1[j][i] == notvalue:
+                notvalueconnection += 1
+            else:
+                notvalueconnection = 0
+                valueconnection = 0
+    notvalueconnection = 0
+    valueconnection = 0
 
     # for digaonal
     for i in range(0, 6):
-        tempbonus = 0
-        flag = 1
         for j in range(0, 7):
             row = i
             column = j
             while row < 6 and column < 7:
-                if board[row][column] == value:
-                    connection += 1
-                    if row == 2:
-                        tempbonus += 0.4
-                        if column == 3:
-                            tempbonus += 0.4
-                    elif i == 2 or 1 or 4 or 5:
-                        tempbonus += 0.2
-                    if connection == numberofconnections:
+                if (column >= 4 and row <= 3) or (column <= 2 and row >= 3):
+                    break
+
+                if board1[row][column] == value:
+                    valueconnection += 1
+                    # if we blocked 2 connections for player
+                    if notvalueconnection == 1:
+                        blocks += 8
+                    # if we blocked 3 connection for player
+                    elif notvalueconnection == 2:
+                        blocks += 27
+                    # if we blocked 4 connection for player
+                    elif notvalueconnection == 3:
+                        blocks += 64
+                    # if we blocked more than 4 connection for player
+                    else:
+                        blocks += 100
+                    notvalueconnection = 0
+
+                    if valueconnection == numberofconnections:
                         score += 1
-                        connection = 0
-                elif board[row][column] == notvalue:
-                    if connection < 4:
-                        if connection >= 1:
-                            blocked += 1
-                        flag = 0
-                    connection = 0
+                        valueconnection -= 1
+
+                elif board1[row][column] == notvalue:
+                    notvalueconnection += 1
+
                 else:
-                    connection = 0
+                    notvalueconnection = 0
+                    valueconnection = 0
                 row += 1
                 column += 1
-        if flag:
-            bonus += tempbonus
-        connection = 0
+        valueconnection = 0
+        notvalueconnection = 0
+    valueconnection = 0
+    notvalueconnection = 0
 
     # for reversed digaonal
     for i in range(0, 6):
-        tempbonus = 0
-        flag = 1
         for j in range(0, 7):
             row = i
             column = j
             while row < 6 and column < 7 and column > 0:
-                if board[row][column] == value:
-                    connection += 1
-                    if row == 2:
-                        tempbonus += 0.4
-                        if column == 3:
-                            tempbonus += 0.4
-                    elif i == 2 or 1 or 4 or 5:
-                        tempbonus += 0.2
-                    if connection == numberofconnections:
+                if (column >= 4 and row >= 3 ) or (column <= 2 and row <= 3):
+                    break
+
+                if board1[row][column] == value:
+                    valueconnection += 1
+                    # if we blocked 2 connections for player
+                    if notvalueconnection == 1:
+                        blocks += 8
+                    # if we blocked 3 connection for player
+                    elif notvalueconnection == 2:
+                        blocks += 27
+                    # if we blocked 4 connection for player
+                    elif notvalueconnection == 3:
+                        blocks += 64
+                    # if we blocked more than 4 connection for player
+                    else:
+                        blocks += 100
+                    notvalueconnection = 0
+
+                    if valueconnection == numberofconnections:
                         score += 1
-                        connection = 0
-                elif board[row][column] == notvalue:
-                    if connection < 4:
-                        if connection >= 1:
-                            blocked += 1
-                        flag = 0
-                    connection = 0
+                        break
+
+                elif board1[row][column] == notvalue:
+                    notvalueconnection += 1
+
                 else:
-                    connection = 0
+                    notvalueconnection = 0
+                    valueconnection = 0
                 row += 1
                 column -= 1
-        if flag:
-            bonus += tempbonus
-        connection = 0
+        notvalueconnection = 0
+        valueconnection = 0
 
-    return score, bonus, blocked
-
+    return score + blocks
 
 def evaluation(board, value, notvalue):
     score = 0
-    x, y, z = calculateconnections(board, value, notvalue, 2)
-    score += x * 10 + y * 10 - z * 10
-    x, y, z = calculateconnections(board, value, notvalue, 3)
-    score += x * 100 + y * 100 - z * 100
-    x, y, z = calculateconnections(board, value, notvalue, 4)
-    score += x * 1000 + y * 100 - z * 1000
-
+    score += calculateconnections(board, "2", "1", 2)
+    score += calculateconnections(board, "2", "1", 3)
+    score += calculateconnections(board, "2", "1", 4)
     return score
-
 
 
 # define colours
@@ -638,7 +677,10 @@ def game(k, with_pruning):
                 temp = k
                 row = 0
                 col = 0
-                child = decision(board1, temp)
+                if with_pruning == True:
+                    child = decision_pruning(board1, temp)
+                else:
+                    child = decision(board1, temp)
                 print(child)
                 for i in range(0, 6):
                     for j in range(0, 7):
